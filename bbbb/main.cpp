@@ -37,6 +37,17 @@ void Test3()
 	}
 }
 
+class TestXY
+{
+public:
+	int x_;
+	int y_;
+
+public:
+	TestXY() {};
+	~TestXY() {};
+};
+
 void Test4()
 {
 	int *a = new int;
@@ -52,8 +63,12 @@ void Test4()
 
 	lunas::g_heap_manager.printRemain();
 	delete[] c;
+	lunas::g_heap_manager.printRemain();
 
-
+	TestXY *test = new TestXY();
+	lunas::g_heap_manager.printRemain();
+	delete test;
+	lunas::g_heap_manager.printRemain();
 	lunas::g_heap_manager.printInfo();
 }
 

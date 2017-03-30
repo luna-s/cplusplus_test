@@ -2,7 +2,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <iostream>
-//#include <list>
 #include <vector>
 
 namespace lunas {
@@ -18,8 +17,6 @@ typedef struct _Alloc
 	int line;
 } Alloc;
 
-//typedef std::list<Alloc> AllocList;
-//typedef std::list<Alloc>::iterator AllocIter;
 typedef std::vector<Alloc> AllocList;
 typedef std::vector<Alloc>::iterator AllocIter;
 
@@ -70,20 +67,6 @@ public:
 
 	void remove(void *ptr, const char *file, const int line)
 	{
-		//AllocIter iter;
-		//for (int i = 0; i < alloc_list_.size(); ++i) {
-
-		//	if (((Alloc)(*iter)).ptr == ptr) {
-		//		total_alloc_size_ -= ((Alloc)(*iter)).size;
-		//		del_count_ += 1;
-		//		cur_count_ -= 1;
-		//		goto FREEFREE;
-		//	}
-		//	else {
-		//		++iter;
-		//	}
-		//}
-
 		Alloc alloc;
 		for (int i = 0; i < alloc_list_.size(); ++i) {
 			alloc = alloc_list_[i];
@@ -100,11 +83,8 @@ public:
 		std::cout << "i dont know ptr" << std::endl;
 		std::cout << ptr << file << line << std::endl;
 		std::cout << std::endl;
-		goto FREE;
-
-	FREEFREE:
 		
-	FREE:
+	FREEFREE:
 		free(ptr);
 	}
 
@@ -154,14 +134,14 @@ void *operator new[](size_t size, const char *file, const int line)
 	return operator new(size, file, line);
 }
 
-void operator delete(void *ptr)
+void operator delete(void *ptr) throw()
 {
 	const char *file = g_file;
 	const int line = g_line;
 	lunas::g_heap_manager.remove(ptr, file, line);
 }
 
-void operator delete[](void *ptr)
+void operator delete[](void *ptr) throw()
 {
 	//const char *file = g_file;
 	//const int line = g_line;
