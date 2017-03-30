@@ -67,6 +67,13 @@ public:
 
 	void remove(void *ptr, const char *file, const int line)
 	{
+		if (!ptr) {
+			std::cout << "NULL NULL NULL ptr " << std::endl;
+			std::cout << file << line << std::endl;
+			std::cout << std::endl;
+			return;
+		}
+
 		Alloc alloc;
 		for (int i = 0; i < alloc_list_.size(); ++i) {
 			alloc = alloc_list_[i];

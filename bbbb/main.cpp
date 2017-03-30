@@ -66,9 +66,16 @@ void Test4()
 	lunas::g_heap_manager.printRemain();
 
 	TestXY *test = new TestXY();
+	test->x_ = 10;
+	test->y_ = 20;
 	lunas::g_heap_manager.printRemain();
 	delete test;
 	lunas::g_heap_manager.printRemain();
+	lunas::g_heap_manager.printInfo();
+
+	a = NULL;
+	delete a;
+
 	lunas::g_heap_manager.printInfo();
 }
 
