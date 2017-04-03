@@ -3,6 +3,9 @@
 
 #include <iostream>
 #include <vector>
+#include <mutex>
+
+std::mutex mtx;
 
 namespace lunas {
 
@@ -32,6 +35,10 @@ private:
 
 	AllocList alloc_list_;
 
+public:
+	static HeapManager sHeapManager;
+
+
 
 public:
 	HeapManager()
@@ -40,13 +47,19 @@ public:
 	}
 	~HeapManager() {}
 
+public:
+	void setOwner(const char *file, const unsigned int line);
+
 	void *add(size_t size, const char *file, const int line)
 	{
+		mtx.lock();
+
 		void *ptr = malloc(size);
 		if (!ptr) {
 			std::cout << "Heap memory is shortage" << std::endl;
 			std::cout << size << file << line << std::endl;
 			new_failed_count_ += 1;
+			mtx.unlock();
 			return NULL;
 		}
 
@@ -62,15 +75,19 @@ public:
 		strcpy_s(alloc.file, sizeof(alloc.file), file);
 		alloc_list_.push_back(alloc);
 
+		mtx.unlock();
 		return ptr;
 	}
 
 	void remove(void *ptr, const char *file, const int line)
 	{
+		mtx.lock();
+
 		if (!ptr) {
 			std::cout << "NULL NULL NULL ptr " << std::endl;
 			std::cout << file << line << std::endl;
 			std::cout << std::endl;
+			mtx.unlock();
 			return;
 		}
 
@@ -87,16 +104,19 @@ public:
 		}
 
 		del_failed_count_ += 1;
-		std::cout << "i dont know ptr" << std::endl;
-		std::cout << ptr << file << line << std::endl;
+		std::cout << ptr << "i dont know ptr " ;
+		std::cout << file << line << std::endl;
 		std::cout << std::endl;
 		
 	FREEFREE:
 		free(ptr);
+
+		mtx.unlock();
 	}
 
 	void printInfo()
 	{
+		mtx.lock();
 		std::cout << "-------------------------------------------" << std::endl;
 		std::cout << "total alloc size : " << total_alloc_size_ << std::endl;
 		std::cout << "new count :" << new_count_ << std::endl;
@@ -106,10 +126,12 @@ public:
 		std::cout << "failed delete count : " << del_failed_count_ << std::endl;
 		std::cout << "-------------------------------------------" << std::endl;
 		std::cout << std::endl;
+		mtx.unlock();
 	}
 
 	void printRemain()
 	{
+		mtx.lock();
 		Alloc alloc;
 		std::cout << "---REMAINS----------------------------------------" << std::endl;
 		std::cout << "ADDRESS" << "\t\t" << "SIZE" << "\t" << "LINE" << "\t" << "FILE" << std::endl;
@@ -119,20 +141,22 @@ public:
 		}
 		std::cout << "---END----------------------------------------" << std::endl;
 		std::cout << std::endl;
+		mtx.unlock();
 	}
 };
 
-HeapManager g_heap_manager;
+static HeapManager g_heap_manager;
 }
 
 
+#if 0
 static const char *g_file;
 static int g_line;
 
 void *operator new(size_t size, const char *file, const int line)
 {
 	//	std::cout << "new " << size << std::endl;
-
+	
 	return lunas::g_heap_manager.add(size, file, line);
 }
 
@@ -141,18 +165,32 @@ void *operator new[](size_t size, const char *file, const int line)
 	return operator new(size, file, line);
 }
 
-void operator delete(void *ptr) throw()
-{
-	const char *file = g_file;
-	const int line = g_line;
-	lunas::g_heap_manager.remove(ptr, file, line);
-}
-
-void operator delete[](void *ptr) throw()
+void operator delete(void *addr) throw()
 {
 	//const char *file = g_file;
 	//const int line = g_line;
-	return operator delete(ptr);
+	lunas::g_heap_manager.remove(addr, g_file, g_line);
+}
+
+void operator delete(void *addr, const char *file, const int line) throw()
+{
+	//const char *file = g_file;
+	//const int line = g_line;
+	lunas::g_heap_manager.remove(addr, g_file, g_line);
+}
+
+void operator delete[](void *addr) throw()
+{
+	//const char *file = g_file;
+	//const int line = g_line;
+	return operator delete(addr, g_file, g_line);
+}
+
+void operator delete[](void *addr, const char *file, const int line) throw()
+{
+	//const char *file = g_file;
+	//const int line = g_line;
+	return operator delete(addr, g_file, g_line);
 }
 
 void deletep(const char *file, const int line)
@@ -160,5 +198,67 @@ void deletep(const char *file, const int line)
 	g_file = file;
 	g_line = line;
 }
+
 #define new new(__FILE__, __LINE__)
 #define delete deletep(__FILE__, __LINE__), delete
+
+#else
+
+static const char *g_file;
+static int g_line;
+
+void *operator new(size_t size, const char *file, const int line)
+{
+	//	std::cout << "new " << size << std::endl;
+
+	return ::lunas::g_heap_manager.add(size, file, line);
+}
+
+void *operator new[](size_t size, const char *file, const int line)
+{
+	return operator new(size, file, line);
+}
+
+void operator delete(void *addr) throw()
+{
+	//const char *file = g_file;
+	//const int line = g_line;
+	::lunas::g_heap_manager.remove(addr, g_file, g_line);
+}
+
+void operator delete(void *addr, const char *file, const int line) throw()
+{
+	//const char *file = g_file;
+	//const int line = g_line;
+	lunas::g_heap_manager.remove(addr, g_file, g_line);
+}
+
+void operator delete[](void *addr) throw()
+{
+	//const char *file = g_file;
+	//const int line = g_line;
+	return operator delete(addr, g_file, g_line);
+}
+
+void operator delete[](void *addr, const char *file, const int line) throw()
+{
+	//const char *file = g_file;
+	//const int line = g_line;
+	return operator delete(addr, g_file, g_line);
+}
+
+void deletep(const char *file, const int line)
+{
+	g_file = file;
+	g_line = line;
+}
+
+
+#define new new(__FILE__, __LINE__)
+#define delete deletep(__FILE__, __LINE__), delete
+
+//#define new		(lunas::g_heap_manager.setOwner(__FILE__, __LINE__), false) ? NULL : new
+//#define delete	(lunas::g_heap_manager.setOwner(__FILE__, __LINE__), false) ? lunas::g_heap_manager.setOwner("", 0) : delete
+
+#endif
+

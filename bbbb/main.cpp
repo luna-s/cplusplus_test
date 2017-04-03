@@ -1,7 +1,7 @@
 #include <iostream>
 #include "newh.h"
 
-
+#if 0
 void Test2()
 {
 	int *aaa = new int;
@@ -79,9 +79,24 @@ void Test4()
 	lunas::g_heap_manager.printInfo();
 }
 
+#endif
+
+void Test5()
+{
+	std::string *name = new std::string("korea");
+
+	//lunas::g_heap_manager.printInfo();
+
+	delete name;
+
+	//lunas::g_heap_manager.printInfo();
+}
+
+
+
 void main()
 {
-	Test4();
+	Test5();
 
 	std::cout << "end" << std::endl;
 

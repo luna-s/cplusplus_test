@@ -1,79 +1,6 @@
 #include <iostream>
 #include <cstdio>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void* operator new(size_t size)
-{
-	if (!size)
-		return NULL;
-
-	void *p = malloc(size);
-	if (!p)
-		return NULL;
-
-	std::cout << p << "  I'm overriding new " << std::endl;
-
-	return p;
-}
-
-void* operator new[](size_t size)
-{
-	return operator new(size);
-}
-
-void* operator new(size_t size, const char* file, const int line)
-{
-	if (!size)
-		return NULL;
-
-	void *p = malloc(size);
-	if (!p)
-		return NULL;
-
-	std::cout << p << "  I'm overriding new 222" << std::endl;
-
-	return p;
-}
-
-void* operator new[](size_t size, const char* file, const int line)
-{
-	return operator new(size, file, line);
-}
-
-void operator delete(void* ptr)
-{
-	std::cout << ptr << "  I'm overriding delete " << std::endl;
-
-	if (!ptr)
-		return;
-
-	free(ptr);
-}
-
-void operator delete[](void* ptr)
-{
-	return operator delete(ptr);
-}
-
-#define new new(__FILE__, __LINE__)
+#include "newh.h"
 
 void main()
 {
@@ -96,11 +23,28 @@ void main()
 
 
 	
+	lunas::s_heap_manager.printInfoAll();
 	
+	int *aa = new int;
+	float *bb = new float;
+	char *cc = new char[1000];
+
+	lunas::s_heap_manager.printInfoAll();
+
+	std::string *dd = new std::string();
+	std::string *ee = new std::string("korea");
+
+	lunas::s_heap_manager.printInfoAll();
+
+	delete aa;
+	delete bb;
+	delete[] cc;
+
+	lunas::s_heap_manager.printInfoAll();
 	
-	
+	delete dd;
+	delete ee;
 
-
-
+	lunas::s_heap_manager.printInfoAll();
 
 }
